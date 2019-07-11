@@ -28,9 +28,8 @@ public class CsvFormatStrategy implements FormatStrategy {
   @NonNull private final Date date;
   @NonNull private final SimpleDateFormat dateFormat;
   @NonNull private final LogStrategy logStrategy;
+  @NonNull private final String newLineReplacement;
   @Nullable private final String tag;
-  @Nullable private final String folder;
-  @Nullable private final String fileName;
 
   private CsvFormatStrategy(@NonNull Builder builder) {
     checkNotNull(builder);
@@ -39,8 +38,7 @@ public class CsvFormatStrategy implements FormatStrategy {
     dateFormat = builder.dateFormat;
     logStrategy = builder.logStrategy;
     tag = builder.tag;
-    folder = builder.folder;
-    fileName = builder.fileName;
+    newLineReplacement = builder.newLineReplacement;
   }
 
   @NonNull public static Builder newBuilder() {
@@ -74,7 +72,7 @@ public class CsvFormatStrategy implements FormatStrategy {
     // message
     if (message.contains(NEW_LINE)) {
       // a new line would break the CSV format, so we replace it here
-      message = message.replaceAll(NEW_LINE, NEW_LINE_REPLACEMENT);
+      message = message.replaceAll(NEW_LINE, newLineReplacement);
     }
     builder.append(SEPARATOR);
     builder.append(message);
@@ -101,6 +99,8 @@ public class CsvFormatStrategy implements FormatStrategy {
     String tag = "PRETTY_LOGGER";
     String folder = "";
     String fileName = "";
+    int maxBytes = MAX_BYTES;
+    String newLineReplacement = " <br> ";
 
     private Builder() {
     }
@@ -135,6 +135,16 @@ public class CsvFormatStrategy implements FormatStrategy {
       return this;
     }
 
+    @NonNull public Builder maxBtyes(@Nullable int maxBytes) {
+      this.maxBytes = maxBytes;
+      return this;
+    }
+
+    @NonNull public Builder newLineReplacement(@Nullable String newLineReplacement) {
+      this.newLineReplacement = newLineReplacement;
+      return this;
+    }
+
     @NonNull public CsvFormatStrategy build() {
       if (date == null) {
         date = new Date();
@@ -154,7 +164,7 @@ public class CsvFormatStrategy implements FormatStrategy {
 
         HandlerThread ht = new HandlerThread("AndroidFileLogger." + folder);
         ht.start();
-        Handler handler = new DiskLogStrategy.WriteHandler(ht.getLooper(), folder, fileName, MAX_BYTES);
+        Handler handler = new DiskLogStrategy.WriteHandler(ht.getLooper(), folder, fileName, maxBytes);
         logStrategy = new DiskLogStrategy(handler);
       }
       return new CsvFormatStrategy(this);
