@@ -9,8 +9,6 @@ import android.support.annotation.Nullable;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.MessageFormat;
-import java.util.Calendar;
 
 import static com.orhanobut.logger.Utils.checkNotNull;
 
@@ -99,14 +97,11 @@ public class DiskLogStrategy implements LogStrategy {
       File newFile;
       File existingFile = null;
 
-      Calendar calendar = Calendar.getInstance();
-      String date = MessageFormat.format("{0}{1}{2}", calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH) + 1, calendar.get(Calendar.DAY_OF_MONTH));
-
-      newFile = new File(folder, String.format("%s_%s_%s.csv", fileName, date, newFileCount));
+      newFile = new File(folder, String.format("%s_%s.csv", fileName, newFileCount));
       while (newFile.exists()) {
         existingFile = newFile;
         newFileCount++;
-        newFile = new File(folder, String.format("%s_%s_%s.csv", fileName, date, newFileCount));
+        newFile = new File(folder, String.format("%s_%s.csv", fileName, newFileCount));
       }
 
       if (existingFile != null) {

@@ -144,12 +144,13 @@ public class CsvFormatStrategy implements FormatStrategy {
       }
       if (logStrategy == null) {
         if (TextUtils.isEmpty(folder)) {
-          String diskPath = Environment.getExternalStorageDirectory().getAbsolutePath();
-          folder = diskPath + File.separatorChar + "logger";
+          folder = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separatorChar + "logger";
         }
         if (TextUtils.isEmpty(fileName)) {
           fileName = "logs";
         }
+        //追加日期
+        fileName = fileName + "_" + getStringByFormat("yyyyMMdd");
 
         HandlerThread ht = new HandlerThread("AndroidFileLogger." + folder);
         ht.start();
@@ -158,5 +159,16 @@ public class CsvFormatStrategy implements FormatStrategy {
       }
       return new CsvFormatStrategy(this);
     }
+  }
+
+  public static String getStringByFormat(String format) {
+    String thisDateTime = null;
+    try {
+      SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat(format);
+      thisDateTime = mSimpleDateFormat.format(System.currentTimeMillis());
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return thisDateTime;
   }
 }
