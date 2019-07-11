@@ -9,13 +9,15 @@ import android.support.annotation.Nullable;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.MessageFormat;
+import java.util.Calendar;
 
 import static com.orhanobut.logger.Utils.checkNotNull;
 
 /**
  * Abstract class that takes care of background threading the file log operation on Android.
  * implementing classes are free to directly perform I/O operations there.
- *
+ * <p>
  * Writes all logs to the disk with CSV format.
  */
 public class DiskLogStrategy implements LogStrategy {
@@ -36,11 +38,13 @@ public class DiskLogStrategy implements LogStrategy {
   static class WriteHandler extends Handler {
 
     @NonNull private final String folder;
+    @NonNull private final String fileName;
     private final int maxFileSize;
 
-    WriteHandler(@NonNull Looper looper, @NonNull String folder, int maxFileSize) {
+    WriteHandler(@NonNull Looper looper, @NonNull String folder, String fileName, int maxFileSize) {
       super(checkNotNull(looper));
       this.folder = checkNotNull(folder);
+      this.fileName = checkNotNull(fileName);
       this.maxFileSize = maxFileSize;
     }
 
@@ -49,7 +53,7 @@ public class DiskLogStrategy implements LogStrategy {
       String content = (String) msg.obj;
 
       FileWriter fileWriter = null;
-      File logFile = getLogFile(folder, "logs");
+      File logFile = getLogFile(folder, fileName);
 
       try {
         fileWriter = new FileWriter(logFile, true);
@@ -88,19 +92,21 @@ public class DiskLogStrategy implements LogStrategy {
 
       File folder = new File(folderName);
       if (!folder.exists()) {
-        //TODO: What if folder is not created, what happens then?
-        folder.mkdirs();
+        boolean result = folder.mkdirs();
       }
 
       int newFileCount = 0;
       File newFile;
       File existingFile = null;
 
-      newFile = new File(folder, String.format("%s_%s.csv", fileName, newFileCount));
+      Calendar calendar = Calendar.getInstance();
+      String date = MessageFormat.format("{0}{1}{2}", calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH) + 1, calendar.get(Calendar.DAY_OF_MONTH));
+
+      newFile = new File(folder, String.format("%s_%s_%s.csv", fileName, date, newFileCount));
       while (newFile.exists()) {
         existingFile = newFile;
         newFileCount++;
-        newFile = new File(folder, String.format("%s_%s.csv", fileName, newFileCount));
+        newFile = new File(folder, String.format("%s_%s_%s.csv", fileName, date, newFileCount));
       }
 
       if (existingFile != null) {
